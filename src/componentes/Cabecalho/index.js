@@ -7,7 +7,10 @@ export default function Cabecalho({ navigation }) {
   return (
     <View style={estilos.container}>
       <Text style={estilos.texto}>Lista de produtos</Text>
-      <TouchableOpacity style={estilos.botao} onPress={() => navigation.replace('Login')}>
+      <TouchableOpacity 
+        style={estilos.botao} 
+        onPress={() => navigation.replace('Login')}
+      >
         <Icon 
           name={'log-out'} 
           size={20} 
