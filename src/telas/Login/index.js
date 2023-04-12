@@ -1,23 +1,40 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Image } from 'react-native';
 import Botao from '../../componentes/Botao';
 import { EntradaTexto } from '../../componentes/EntradaTexto';
 import estilos from './estilos';
 import { logar } from '../../servicos/requisicoesFirebase';
 import { Alerta } from '../../componentes/Alerta';
+import { auth } from '../../config/firebase';
+
+import loading from '../../../assets/loading.json'
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [statusError, setStatusError] = useState('');
-  const [messagemError, setMessagemError] = useState('');
+  const [mensagemError, setMensagemError] = useState('');
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    const estadoUsuario = auth.onAuthStateChanged(
+      usuario => {
+        if(usuario){
+          navigation.replace('Principal')
+        }
+        setCarregando(false);
+      }
+    )
+
+    return () => estadoUsuario();
+  }, [])
 
   async function realizarLogin(){ 
     if(email === '') {
-      setMessagemError('O email é obirgatório')
+      setMensagemError('O email é obirgatório')
       setStatusError('email');
     } else if (senha === '') {
-      setMessagemError('A senha é obrigatório');
+      setMensagemError('A senha é obrigatório');
       setStatusError('senha');
     } else {
       const resultado = await logar(email, senha);
@@ -26,10 +43,21 @@ export default function Login({ navigation }) {
         setMensagemError('Email ou Senha não conferem');
       }
       else {
-        navigation.navigate('Principal')
+        navigation.replace('Principal')
       }
     }
     
+  }
+
+  if(carregando){
+    return (
+      <View style={estilos.containerAnimacao}>
+        <Image 
+          source={loading}
+          styule={estilos.imagem}
+        />
+      </View>
+    )
   }
 
   return (
