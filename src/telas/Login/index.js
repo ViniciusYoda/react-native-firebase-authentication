@@ -6,15 +6,22 @@ import estilos from './estilos';
 import { logar } from '../../servicos/requisicoesFirebase';
 import { Alerta } from '../../componentes/Alerta';
 import { auth } from '../../config/firebase';
+import { alteraDados, verificaSeTemEntradaVazia } from '../../utils/comum';
+import { entradas } from './entradas';
 
 import loading from '../../../assets/loading.json'
 
 export default function Login({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [dados, setDados] = useState({
+    email: '',
+    senha: ''
+  });
+
   const [statusError, setStatusError] = useState('');
   const [mensagemError, setMensagemError] = useState('');
   const [carregando, setCarregando] = useState(true);
+
+
 
   useEffect(() => {
     const estadoUsuario = auth.onAuthStateChanged(
@@ -29,24 +36,17 @@ export default function Login({ navigation }) {
     return () => estadoUsuario();
   }, [])
 
+
+
   async function realizarLogin(){ 
-    if(email === '') {
-      setMensagemError('O email é obirgatório')
-      setStatusError('email');
-    } else if (senha === '') {
-      setMensagemError('A senha é obrigatório');
-      setStatusError('senha');
-    } else {
-      const resultado = await logar(email, senha);
-      if (resultado == 'erro') {
-        setStatusError('firebase');
-        setMensagemError('Email ou Senha não conferem');
-      }
-      else {
-        navigation.replace('Principal')
-      }
+    if(verificaSeTemEntradaVazia(dados, setDados)) return
+    const resultado = await logar(dados.email, dados.senha)
+    if(resultado == 'erro'){
+      setStatusError(true)
+      setMensagemError('E-mail ou senha errada')
+      return
     }
-    
+    navigation.replace('Princiapal')
   }
 
   if(carregando){
@@ -62,25 +62,22 @@ export default function Login({ navigation }) {
 
   return (
     <View style={estilos.container}>
-      <EntradaTexto 
-        label="E-mail"
-        value={email}
-        onChangeText={texto => setEmail(texto)}
-        error={statusError == 'email'}
-        messageError={mensagemError}
-      />
-      <EntradaTexto
-        label="Senha"
-        value={senha}
-        onChangeText={texto => setSenha(texto)}
-        secureTextEntry
-        error={statusError == 'senha'}
-        messageError={mensagemError}
-      />
+      {
+        entradas.map((entrada) => {
+          return (
+            <EntradaTexto 
+              key={entrada.id}
+              {...entrada}
+              value={dados[entrada.name]}
+              onChangeText={valor => alteraDados(entrada.name, valor, dados, setDados)}
+            />
+          )
+        })
+      }
 
       <Alerta 
         mensagem={mensagemError}
-        error={statusError == 'firebase'}
+        error={statusError}
         setError={setStatusError}
       />
       
